@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='utf-8' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth'
+            });
+            calendar.render();
+        });
+    </script>
+    <div>
+        <button onclick="addEvent()"> Add event </button>
+        <input type="text" id="title1" placeholder="text for add">
+        <input type="date" id="date1">
+    </div>
+    <div>
+        <button onclick="updateEvent()"> Update event </button>
+        <select id="updateList" class="lists" onchange="changeUpdate()">
+            <option>Choose event to update</option>
+        </select>
+        <input type="text" id="title2" placeholder="text for update">
+        <input type="date" id="date2">
+    </div>
+    <div>
+        <button onclick="deleteEvent()"> Delete event </button>
+        <select id="deleteList" class="lists" onchange="deleteEvent()">
+            <option>Choose event to delete</option>
+        </select>
+    </div>
+
+    <div id="resultText"></div>
+
+    <script>
+        var arr;
+        getEvents();
+
+        function addEvent() {
+            axios.post("https://eventsapi.onrender.com/api/Events", {
+                title: document.querySelector("#title1").value,
+                start: document.querySelector("#date1").value,
+            })
+                .then((res) => {
+                    document.getElementById('resultText').innerHTML = JSON.stringify(res.data);
+                });
+            getEvents();
+        }
+
+        function updateEvent() {
+            axios.put(`https://eventsapi.onrender.com/api/Events/${document.querySelector("#updateList").value}`, {
+                title: document.querySelector("#title2").value,
+                start: document.querySelector("#date2").value,
+            })
+                .then((res) => {
+                    document.getElementById('resultText').innerHTML = "The event is update";
+                });
+
+            getEvent();
+        }
+
+        function deleteEvent() {
+            axios.delete(`https://eventsapi.onrender.com/api/Events/${document.querySelector("#deleteList").value}`)
+                .then((res) => {
+                    document.getElementById('resultText').innerHTML = "The event is delete";
+                });
+            getEvents();
+        }
+
+        function getEvents() {
+            axios.get("https://eventsapi.onrender.com/api/Events").then((res) => {
+                arr = res.data
+                arr.forEach((element) => {
+                    if (document.querySelector("option").value == element.title) {
+                        document.querySelector("#title2").value = element.title;
+                        document.querySelector("#date2").value = element.start;
+                    }
+                    let option1 = document.createElement("option");
+                    let option2 = document.createElement("option");
+                    option1.value = element.id;
+                    option1.text = element.title;
+                    option2.value = element.id;
+                    option2.text = element.title;
+                    document.querySelector("#updateList").append(option1);
+                    document.querySelector("#deleteList").append(option2);
+                });
+                var calendarEl = document.getElementById("calendar");
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: "dayGridMonth",
+                    events: res.data,
+                });
+                calendar.render();
+            })
+        }
+
+        function changeUpdate() {
+            arr.forEach((element) => {
+                if (element.id == document.querySelector("#updateList").value) {
+                    document.querySelector("#title2").value = element.title;
+                    document.querySelector("#date2").value = element.start;
+                }
+            })
+            updateEvent();
+        }
+    </script>
+
+    <div id='calendar'></div>
+</head>
+
+<body>
+
+</body>
+
+</html>

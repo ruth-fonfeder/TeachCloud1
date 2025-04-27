@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8' />
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js'></script>
+
+</head>
+
+<body>
+  <!-- buttons -->
+  <button onclick="addEvent()"> Add Event </button>
+  <button onclick="updateEvent()"> Update Event </button>
+  <button onclick="deleteEvent()"> Delete Event </button>
+
+  <div id="resultText"></div>
+
+  <script>
+    function addEvent() {
+      let eventTitle = document.getElementById('eventTitle').value;
+      let eventStart = document.getElementById('eventDate').value;
+      axios.post("https://localhost:7200/api/Events", {
+        title: eventTitle,
+        start: eventStart,
+      })
+        .then((res) => {
+          document.getElementById('resultText').innerHTML =
+            JSON.stringify(res.data);
+          axios.post("https://eventsapi.onrender.com/api/Events", {
+            title: eventTitle,
+            start: eventStart,
+          }
+          )
+        });
+    }
+    function updateEvent() {
+      let eventTitle = document.getElementById('eventTitle').value;
+      let eventId = document.getElementById('eventId').value;
+      let eventStart = document.getElementById('eventDate').value;
+      let id = eventId;
+      axios.put(`https://localhost:7200/api/Events/${id}`, {
+        title: eventTitle,
+        start: eventStart,
+      })
+        .then((res) => {
+          document.getElementById('resultText').innerHTML = "האירוע התעדכן בהצלחה";
+          axios.put(`https://eventsapi.onrender.com/api/Events/${id}`, {
+            title: eventTitle,
+            start: eventStart,
+          })
+        });
+    }
+
+    function deleteEvent() {
+      let id = 3;
+      axios.delete(`https://localhost:7200/api/Events/${id}`)
+        .then((res) => {
+          document.getyElementById('resultText').innerHTML = "האירוע נמחק בהצלחה";
+        });
+    }
+  </script>
+  <!-- inputs -->
+  <input type="number" id="eventId" placeholder="id:">
+  <input type="text" id="eventTitle" />
+  <input type="date" id="eventDate" />
+
+  <!-- <input type="text" id="eventTitle" placeholder="Event Title"> -->
+
+  <div id='calendar'></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      axios.get("https://localhost:7222/api/Events").then((res) => {
+        var calendarEl = document.getElementById("calendar");
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          events: res.data,
+        });
+        calendar.render();
+      });
+    });
+  </script>
+
+  <!-- </script> -->
+</body>
+
+</html>
